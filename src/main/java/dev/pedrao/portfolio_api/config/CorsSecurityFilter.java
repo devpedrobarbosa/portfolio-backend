@@ -33,7 +33,6 @@ public class CorsSecurityFilter implements Filter {
             return;
         }
         if (origin != null && !ALLOWED_ORIGINS.contains(origin)) {
-            System.out.println(origin);
             res.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso negado: Origem não permitida.");
             return;
         }
