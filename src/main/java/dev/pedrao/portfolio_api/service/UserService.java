@@ -51,6 +51,10 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<User> findByUsernameAndPassword(String username, String password) {
+        return userRepository.findByUsernameAndPassword(username, password);
+    }
+
     /**
     * Update an existing user
     *
