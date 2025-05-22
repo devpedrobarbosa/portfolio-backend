@@ -14,8 +14,8 @@ public class CorsConfig implements WebMvcConfigurer {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("https://www.pedrao.tech")
+                registry.addMapping("/v1/**")
+                        .allowedOrigins("https://www.pedrao.tech", "http://localhost:5173", "http://localhost:8080")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

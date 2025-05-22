@@ -16,12 +16,10 @@ import java.util.List;
 public class CorsSecurityFilter implements Filter {
 
     private static final List<String> ALLOWED_ORIGINS = List.of(
-            "https://www.pedrao.tech", "http://localhost:3000"
+            "https://www.pedrao.tech", "http://localhost:5173", "http://localhost:8080"
     );
 
-    private static final List<String> BLOCKED_USER_AGENTS = List.of(
-            "PostmanRuntime", "curl", "HTTPie"
-    );
+    private static final List<String> BLOCKED_USER_AGENTS = List.of();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -34,7 +32,8 @@ public class CorsSecurityFilter implements Filter {
             chain.doFilter(request, response);
             return;
         }
-        if (origin == null || !ALLOWED_ORIGINS.contains(origin)) {
+        if (origin != null && !ALLOWED_ORIGINS.contains(origin)) {
+            System.out.println(origin);
             res.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso negado: Origem não permitida.");
             return;
         }
