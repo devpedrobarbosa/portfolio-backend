@@ -43,7 +43,7 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ResponseEntity<Project> updateProject(@PathVariable String id, @RequestBody Project project) {
         Project updatedProject = projectService.update(id, project);
-        if (updatedProject != null) {
+        if(updatedProject != null) {
             return new ResponseEntity<>(updatedProject, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

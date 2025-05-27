@@ -33,14 +33,14 @@ public class SkillController {
         List<Skill> skills = skillService.findAll();
         return new ResponseEntity<>(skills, HttpStatus.OK);
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<Skill> getSkillById(@PathVariable String id) {
         Optional<Skill> skill = skillService.findById(id);
         return skill.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-    
+
     @GetMapping("/type/{type}")
     public ResponseEntity<List<Skill>> getSkillsByType(@PathVariable SkillType type) {
         List<Skill> skills = skillService.findAllByType(type);
@@ -50,7 +50,7 @@ public class SkillController {
     @PutMapping("/{id}")
     public ResponseEntity<Skill> updateSkill(@PathVariable String id, @RequestBody Skill skill) {
         Skill updatedSkill = skillService.update(id, skill);
-        if (updatedSkill != null) {
+        if(updatedSkill != null) {
             return new ResponseEntity<>(updatedSkill, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("dev") // Only loaded in dev environment
+@Profile("dev")
 public class SwaggerConfig {
 
     @Bean

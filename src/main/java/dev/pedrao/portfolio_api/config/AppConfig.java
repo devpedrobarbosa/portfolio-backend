@@ -22,7 +22,6 @@ public class AppConfig {
 
     @Bean
     public MongoClient mongoClient() {
-        // Add connection pool settings
         ConnectionString connectionString = new ConnectionString(mongoUri);
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)

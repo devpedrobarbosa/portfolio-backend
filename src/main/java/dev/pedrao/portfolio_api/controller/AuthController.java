@@ -35,14 +35,14 @@ public class AuthController {
 
         Optional<User> userOptional = userService.findByUsername(username);
 
-        if (userOptional.isEmpty() || !passwordUtil.matches(password, userOptional.get().getPassword()))
+        if(userOptional.isEmpty() || !passwordUtil.matches(password, userOptional.get().getPassword()))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         User user = userOptional.get();
 
 //        if(user.getPassword().isEmpty())
 //            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
-        
+
         return ResponseEntity.ok(new UserDTO(user.getId(), user.getUsername(), user.getRole()));
     }
 }
