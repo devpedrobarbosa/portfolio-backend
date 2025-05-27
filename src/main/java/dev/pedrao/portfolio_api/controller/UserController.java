@@ -1,6 +1,7 @@
 package dev.pedrao.portfolio_api.controller;
 
 import dev.pedrao.portfolio_api.model.User;
+import dev.pedrao.portfolio_api.model.dto.UserDTO;
 import dev.pedrao.portfolio_api.service.UserService;
 import dev.pedrao.portfolio_api.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,18 +23,22 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User savedUser = userService.create(user);
+    public ResponseEntity<UserDTO> createUser(@RequestBody User user) {
+        if(user.invalid())
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         user.setPassword(passwordUtil.encodePassword(user.getPassword()));
-        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+        User savedUser = userService.create(user);
+        return new ResponseEntity<>(savedUser.toDTO(), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable String id, @RequestBody User user) {
+        if(user.invalid())
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         user.setPassword(passwordUtil.encodePassword(user.getPassword()));
         User updatedUser = userService.update(id, user);
         if(updatedUser != null) {
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+            return new ResponseEntity<>(updatedUser.toDTO(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

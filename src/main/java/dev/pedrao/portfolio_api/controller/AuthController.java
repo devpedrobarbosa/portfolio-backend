@@ -1,6 +1,8 @@
 package dev.pedrao.portfolio_api.controller;
 
 import dev.pedrao.portfolio_api.model.User;
+import dev.pedrao.portfolio_api.model.dto.AuthDTO;
+import dev.pedrao.portfolio_api.model.dto.UserDTO;
 import dev.pedrao.portfolio_api.service.UserService;
 import dev.pedrao.portfolio_api.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -29,20 +29,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
+    public ResponseEntity<UserDTO> login(@RequestBody AuthDTO credentials) {
+        String username = credentials.username();
+        String password = credentials.password();
 
         Optional<User> userOptional = userService.findByUsername(username);
 
-        if (userOptional.isEmpty() || !passwordUtil.matches(password, userOptional.get().getPassword())) {
+        if (userOptional.isEmpty() || !passwordUtil.matches(password, userOptional.get().getPassword()))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Login successful");
-        response.put("role", userOptional.get().getRole());
+        User user = userOptional.get();
+
+//        if(user.getPassword().isEmpty())
+//            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).build();
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new UserDTO(user.getId(), user.getUsername(), user.getRole()));
     }
 }
