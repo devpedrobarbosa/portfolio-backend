@@ -38,7 +38,7 @@ public class UserService {
         return userRepository.findByUsernameAndPassword(username, password);
     }
 
-    public User update(String id, User updatedUser) {
+    public User updateById(String id, User updatedUser) {
         Optional<User> existingUser = userRepository.findById(id);
         if (existingUser.isPresent()) {
             updatedUser.setId(id);

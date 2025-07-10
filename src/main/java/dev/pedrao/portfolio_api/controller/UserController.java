@@ -32,11 +32,11 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable String id, @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUserById(@PathVariable String id, @RequestBody User user) {
         if(user.invalid())
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         user.setPassword(passwordUtil.encodePassword(user.getPassword()));
-        User updatedUser = userService.update(id, user);
+        User updatedUser = userService.updateById(id, user);
         if(updatedUser != null) {
             return new ResponseEntity<>(updatedUser.toDTO(), HttpStatus.OK);
         } else {

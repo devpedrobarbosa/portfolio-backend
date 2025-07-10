@@ -28,7 +28,7 @@ public class User {
     }
 
     public boolean invalid() {
-        return username.isEmpty() || password.isEmpty() || role.isEmpty();
+        return username == null || username.isEmpty() || password == null || password.isEmpty() || role == null || role.isEmpty();
     }
 
     public UserDTO toDTO() {
