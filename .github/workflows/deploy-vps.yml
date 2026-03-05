@@ -40,12 +40,62 @@ jobs:
             - name: Export Docker image archive
               run: docker save -o "$IMAGE_ARCHIVE" "$IMAGE_NAME"
 
+            - name: Validate deployment secrets
+              env:
+                VPS_HOST: ${{ secrets.VPS_HOST }}
+                VPS_PORT: ${{ secrets.VPS_PORT }}
+                VPS_USER: ${{ secrets.VPS_USER }}
+                VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+                VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+                VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+                SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+                SPRING_DATA_MONGODB_DATABASE: ${{ secrets.SPRING_DATA_MONGODB_DATABASE }}
+              run: |
+                set -e
+
+                if [ -z "$VPS_HOST" ]; then
+                    echo "::error::Missing required secret VPS_HOST"
+                    exit 1
+                fi
+
+                if [ -z "$VPS_PORT" ]; then
+                    echo "::error::Missing required secret VPS_PORT"
+                    exit 1
+                fi
+
+                if [ -z "$VPS_USER" ]; then
+                    echo "::error::Missing required secret VPS_USER"
+                    exit 1
+                fi
+
+                if [ -z "$VPS_DEPLOY_PATH" ]; then
+                    echo "::error::Missing required secret VPS_DEPLOY_PATH"
+                    exit 1
+                fi
+
+                if [ -z "$SPRING_DATA_MONGODB_URI" ]; then
+                    echo "::error::Missing required secret SPRING_DATA_MONGODB_URI"
+                    exit 1
+                fi
+
+                if [ -z "$SPRING_DATA_MONGODB_DATABASE" ]; then
+                    echo "::error::Missing required secret SPRING_DATA_MONGODB_DATABASE"
+                    exit 1
+                fi
+
+                if [ -z "$VPS_PASSWORD" ] && [ -z "$VPS_SSH_PRIVATE_KEY" ]; then
+                    echo "::error::You must set either VPS_PASSWORD or VPS_SSH_PRIVATE_KEY"
+                    exit 1
+                fi
+
             - name: Ensure deploy directory exists
               uses: appleboy/ssh-action@v1.2.0
               with:
                 host: ${{ secrets.VPS_HOST }}
                 username: ${{ secrets.VPS_USER }}
                 password: ${{ secrets.VPS_PASSWORD }}
+                key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+                passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
                 port: ${{ secrets.VPS_PORT }}
                 script_stop: true
                 script: mkdir -p "${{ secrets.VPS_DEPLOY_PATH }}"
@@ -56,6 +106,8 @@ jobs:
                 host: ${{ secrets.VPS_HOST }}
                 username: ${{ secrets.VPS_USER }}
                 password: ${{ secrets.VPS_PASSWORD }}
+                key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+                passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
                 port: ${{ secrets.VPS_PORT }}
                 source: ${{ env.IMAGE_ARCHIVE }}
                 target: ${{ secrets.VPS_DEPLOY_PATH }}
@@ -72,6 +124,8 @@ jobs:
                 host: ${{ secrets.VPS_HOST }}
                 username: ${{ secrets.VPS_USER }}
                 password: ${{ secrets.VPS_PASSWORD }}
+                key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+                passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
                 port: ${{ secrets.VPS_PORT }}
                 script_stop: true
                 envs: IMAGE_ARCHIVE,IMAGE_NAME,CONTAINER_NAME,SPRING_DATA_MONGODB_URI,SPRING_DATA_MONGODB_DATABASE

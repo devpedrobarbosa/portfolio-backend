@@ -34,16 +34,20 @@ Required `.env` variables:
 
 ## GitHub Actions VPS Deployment
 
-On every push to `main`, `.github/workflows/deploy-vps.yml` builds the jar and Docker image, uploads the image archive to the VPS, and recreates the API container.
+On every push to `main` or `master`, `.github/workflows/deploy-vps.yml` builds the jar and Docker image, uploads the image archive to the VPS, and recreates the API container.
 
 Create these GitHub repository secrets:
 - `VPS_HOST`
 - `VPS_PORT`
 - `VPS_USER`
-- `VPS_PASSWORD`
 - `VPS_DEPLOY_PATH`
 - `SPRING_DATA_MONGODB_URI`
 - `SPRING_DATA_MONGODB_DATABASE`
+
+Authentication secrets (set at least one method):
+- Password method: `VPS_PASSWORD`
+- SSH key method (recommended): `VPS_SSH_PRIVATE_KEY`
+- Optional (only if your key is encrypted): `VPS_SSH_PASSPHRASE`
 
 Notes:
 - The database remains remote.
