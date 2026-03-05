@@ -1,0 +1,98 @@
+name: Deploy Portfolio API to VPS
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        env:
+            IMAGE_NAME: portfolio-api:latest
+            IMAGE_ARCHIVE: portfolio-api-image.tar
+            CONTAINER_NAME: portfolio-api
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Java 17
+              uses: actions/setup-java@v4
+              with:
+                distribution: temurin
+                java-version: "17"
+                cache: gradle
+
+            - name: Make Gradle wrapper executable
+              run: chmod +x ./gradlew
+
+            - name: Build JAR
+              run: ./gradlew clean bootJar
+
+            - name: Build Docker image
+              run: docker build --build-arg JAR_FILE=build/libs/*.jar -t "$IMAGE_NAME" .
+
+            - name: Export Docker image archive
+              run: docker save -o "$IMAGE_ARCHIVE" "$IMAGE_NAME"
+
+            - name: Ensure deploy directory exists
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                host: ${{ secrets.VPS_HOST }}
+                username: ${{ secrets.VPS_USER }}
+                password: ${{ secrets.VPS_PASSWORD }}
+                port: ${{ secrets.VPS_PORT }}
+                script_stop: true
+                script: mkdir -p "${{ secrets.VPS_DEPLOY_PATH }}"
+
+            - name: Upload image archive
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                host: ${{ secrets.VPS_HOST }}
+                username: ${{ secrets.VPS_USER }}
+                password: ${{ secrets.VPS_PASSWORD }}
+                port: ${{ secrets.VPS_PORT }}
+                source: ${{ env.IMAGE_ARCHIVE }}
+                target: ${{ secrets.VPS_DEPLOY_PATH }}
+
+            - name: Run container on VPS
+              uses: appleboy/ssh-action@v1.2.0
+              env:
+                IMAGE_ARCHIVE: ${{ env.IMAGE_ARCHIVE }}
+                IMAGE_NAME: ${{ env.IMAGE_NAME }}
+                CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+                SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+                SPRING_DATA_MONGODB_DATABASE: ${{ secrets.SPRING_DATA_MONGODB_DATABASE }}
+              with:
+                host: ${{ secrets.VPS_HOST }}
+                username: ${{ secrets.VPS_USER }}
+                password: ${{ secrets.VPS_PASSWORD }}
+                port: ${{ secrets.VPS_PORT }}
+                script_stop: true
+                envs: IMAGE_ARCHIVE,IMAGE_NAME,CONTAINER_NAME,SPRING_DATA_MONGODB_URI,SPRING_DATA_MONGODB_DATABASE
+                script: |
+                    set -e
+                    DEPLOY_PATH="${{ secrets.VPS_DEPLOY_PATH }}"
+                    cd "$DEPLOY_PATH"
+
+                    docker load -i "$IMAGE_ARCHIVE"
+
+                    if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
+                        docker rm -f "$CONTAINER_NAME"
+                    fi
+
+                    docker run -d \
+                        --name "$CONTAINER_NAME" \
+                        --restart unless-stopped \
+                        -p 8080:8080 \
+                        -e SPRING_DATA_MONGODB_URI="$SPRING_DATA_MONGODB_URI" \
+                        -e SPRING_DATA_MONGODB_DATABASE="$SPRING_DATA_MONGODB_DATABASE" \
+                        -e SERVER_PORT=8080 \
+                        -e SPRING_PROFILES_ACTIVE=prod \
+                        "$IMAGE_NAME"
+
+                    rm -f "$IMAGE_ARCHIVE"

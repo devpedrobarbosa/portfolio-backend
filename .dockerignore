@@ -1,0 +1,11 @@
+.git
+.github
+.gradle
+.idea
+build/*
+!build/libs/
+!build/libs/*.jar
+src
+HELP.md
+README.md
+upload.bat
