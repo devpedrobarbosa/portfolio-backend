@@ -41,7 +41,6 @@ src/main/resources/*
 !src/main/resources/application-dev.properties
 *.bat
 
-src/main/java/dev/pedrao/portfolio_api/config/cors/
 settings.gradle
 
 src/main/java/dev/pedrao/portfolio_api/model/Access.java
