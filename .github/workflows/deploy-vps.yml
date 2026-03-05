@@ -119,6 +119,7 @@ jobs:
                 port: ${{ secrets.VPS_PORT }}
                 source: deploy-artifacts/${{ env.IMAGE_ARCHIVE }}
                 target: ${{ secrets.VPS_DEPLOY_PATH }}
+                strip_components: 1
 
             - name: Run container on VPS
               uses: appleboy/ssh-action@v1.2.0
@@ -142,7 +143,19 @@ jobs:
                     DEPLOY_PATH="${{ secrets.VPS_DEPLOY_PATH }}"
                     cd "$DEPLOY_PATH"
 
-                    docker load -i "$IMAGE_ARCHIVE"
+                    ARCHIVE_PATH="$DEPLOY_PATH/$IMAGE_ARCHIVE"
+
+                    if [ ! -f "$ARCHIVE_PATH" ]; then
+                        ARCHIVE_PATH="$(find "$DEPLOY_PATH" -maxdepth 4 -type f -name "$IMAGE_ARCHIVE" | head -n 1)"
+                    fi
+
+                    if [ -z "$ARCHIVE_PATH" ] || [ ! -f "$ARCHIVE_PATH" ]; then
+                        echo "Archive '$IMAGE_ARCHIVE' not found in '$DEPLOY_PATH'."
+                        find "$DEPLOY_PATH" -maxdepth 4 -type f
+                        exit 1
+                    fi
+
+                    docker load -i "$ARCHIVE_PATH"
 
                     if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
                         docker rm -f "$CONTAINER_NAME"
@@ -158,4 +171,4 @@ jobs:
                         -e SPRING_PROFILES_ACTIVE=prod \
                         "$IMAGE_NAME"
 
-                    rm -f "$IMAGE_ARCHIVE"
+                    rm -f "$ARCHIVE_PATH"
