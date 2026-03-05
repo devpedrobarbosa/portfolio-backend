@@ -40,6 +40,14 @@ jobs:
             - name: Export Docker image archive
               run: docker save -o "$IMAGE_ARCHIVE" "$IMAGE_NAME"
 
+            - name: Prepare archive for SCP
+              run: |
+                set -e
+                mkdir -p deploy-artifacts
+                cp "$IMAGE_ARCHIVE" "deploy-artifacts/$IMAGE_ARCHIVE"
+                chmod 644 "deploy-artifacts/$IMAGE_ARCHIVE"
+                ls -l "deploy-artifacts/$IMAGE_ARCHIVE"
+
             - name: Validate deployment secrets
               env:
                 VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -109,7 +117,7 @@ jobs:
                 key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
                 passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
                 port: ${{ secrets.VPS_PORT }}
-                source: ${{ env.IMAGE_ARCHIVE }}
+                source: deploy-artifacts/${{ env.IMAGE_ARCHIVE }}
                 target: ${{ secrets.VPS_DEPLOY_PATH }}
 
             - name: Run container on VPS
